@@ -1,0 +1,152 @@
+/* --- Base & Reset --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    /* IMPORTANT: Allow vertical overflow for scroll proxy, hide horizontal */
+    overflow-x: hidden;
+    overflow-y: auto; /* Let Lenis manage scroll, but allow native scroll height */
+    width: 100%;
+    /* height: 100%; - Remove fixed height if using scroll proxy */
+    font-family: 'Poppins', sans-serif;
+    background-color: #050a14; /* Dark base */
+    color: #e0e0e0;
+    /* Improve scroll behavior consistency */
+    scroll-behavior: auto; /* Let Lenis handle smooth scroll */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+/* Hide scrollbar for Chrome/Safari/Opera */
+body::-webkit-scrollbar {
+    display: none;
+}
+
+
+/* --- Three.js Containers --- */
+#webgl-canvas {
+    position: fixed; /* Keep canvas fixed */
+    top: 0;
+    left: 0;
+    outline: none;
+    width: 100%;
+    height: 100%;
+    z-index: 0; /* Behind CSS3D */
+}
+
+#css3d-container {
+    position: fixed; /* Keep CSS container fixed */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; /* On top of WebGL */
+    pointer-events: none; /* Allow clicks/scrolls to pass through */
+}
+
+/* --- Loading Screen --- */
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #0b101b;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    transition: opacity 0.7s ease-out;
+}
+
+#loading-screen.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.spinner {
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-left-color: #8a2be2; /* Accent color */
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+#loading-screen p { font-size: 1.2em; color: #a0a0a0; }
+
+/* --- Scroll Proxy --- */
+#scroll-proxy {
+    position: absolute; /* Position it out of the normal flow */
+    top: 0;
+    left: 0;
+    width: 1px;      /* Minimal width */
+    /* Height will be set dynamically via JavaScript */
+    opacity: 0;      /* Make it invisible */
+    pointer-events: none; /* Prevent any interaction */
+    z-index: -1;     /* Ensure it's behind everything */
+}
+
+
+/* --- CSS3D Page Content Styling --- */
+/* This class is added to the div wrapped by CSS3DObject */
+.page-content-container {
+    width: 1000px; /* Adjust width as needed */
+    min-height: 80vh; /* Ensure some minimum height */
+    background-color: rgba(15, 22, 40, 0.85);
+    backdrop-filter: blur(4px);
+    border-radius: 10px;
+    border: 1px solid rgba(138, 43, 226, 0.3);
+    padding: 50px 60px;
+    color: #e0e5f0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    pointer-events: auto; /* IMPORTANT: Allow interaction with content inside */
+    font-size: 16px;
+    line-height: 1.7;
+}
+
+/* Styles for elements *inside* .page-content-container */
+.page-content-container h1,
+.page-content-container h2,
+.page-content-container h3 { font-weight: 600; margin-bottom: 0.8em; color: #4ecdc4; line-height: 1.3; }
+.page-content-container h1 { font-size: 2.8rem; color: #fff; margin-bottom: 0.4em; }
+.page-content-container h2 { font-size: 1.8rem; border-bottom: 2px solid #8a2be2; display: inline-block; padding-bottom: 5px; margin-bottom: 1.2em; }
+.page-content-container h3 { font-size: 1.3rem; color: #ffc857; margin-top: 1.5em; }
+.page-content-container p { margin-bottom: 1em; }
+.page-content-container a { color: #8a2be2; text-decoration: none; transition: color 0.3s; }
+.page-content-container a:hover { color: #b57aff; }
+.page-content-container ul { list-style: none; padding-left: 0; }
+.page-content-container ul li { position: relative; padding-left: 25px; margin-bottom: 0.8em; }
+.page-content-container ul li::before { content: '🌱'; position: absolute; left: 0; top: 0px; color: #4ecdc4; font-size: 0.9em; }
+.page-content-container strong { color: #ffc857; font-weight: 600; }
+.page-columns { display: flex; gap: 40px; align-items: flex-start; } /* Use flex-start for alignment */
+.page-column { flex: 1; }
+.page-image { width: 100%; height: auto; border-radius: 8px; margin-bottom: 1em; max-height: 350px; object-fit: cover;}
+/* Placeholder for WebGL Image Background */
+.webgl-image-placeholder { width: 100%; min-height: 350px; /* Match image height */ background-color: rgba(0,0,0,0.1); border-radius: 8px; display:flex; align-items:center; justify-content:center; color: #555; font-style: italic; }
+
+.page-hero { text-align: center; padding-top: 15%;}
+.page-hero h1 { font-size: 3.5rem; }
+.page-hero h2 { font-size: 2rem; border: none; color: #8a2be2; margin-bottom: 0.5em;}
+.page-hero .meta { font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); margin-bottom: 0.3em; }
+.page-hero .tagline { font-size: 1.2rem; color: #4ecdc4; margin-top: 1.5em; font-weight: 600; }
+.service-table { background-color: rgba(0,0,0, 0.2); border: 1px solid rgba(138, 43, 226, 0.1); border-radius: 8px; overflow: hidden; margin-top: 2em; }
+.table-header, .table-row { display: grid; grid-template-columns: 1fr 2fr 1fr; padding: 12px 18px; border-bottom: 1px solid rgba(138, 43, 226, 0.1); align-items: center; font-size: 0.95em; }
+.table-header { background-color: rgba(138, 43, 226, 0.1); font-weight: 600; color: #4ecdc4;}
+.table-row:last-child { border-bottom: none; }
+.table-row div:nth-child(3) { text-align: right; font-weight: 600; color: #ffc857;}
+.page-note { margin-top: 1.5em; font-size: 0.9em; color: #a0a8b8;}
+.page-button { display: inline-block; padding: 10px 20px; background-color: #8a2be2; color: #fff; border: none; border-radius: 5px; font-weight: 600; margin-top: 1em; cursor: pointer; transition: background-color 0.3s ease; text-align: center; text-decoration: none; }
+.page-button:hover { background-color: #a97aff; }
+.page-button.primary { background-color: #4ecdc4; color: #050a14; }
+.page-button.primary:hover { background-color: #6fe8db; }
+.terms-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-top: 2em; }
+.term-item { background: rgba(0,0,0,0.15); padding: 15px; border-radius: 5px; border-left: 3px solid #8a2be2; }
+.term-item strong { display: block; margin-bottom: 0.5em; color: #4ecdc4; }
+img { max-width: 100%; height: auto; } /* Ensure images within content scale */

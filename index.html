@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Innovaciones MADFAM - Experiencia Interactiva</title>
+
+    <!-- Link to CSS (Corrected Path) -->
+    <link rel="stylesheet" href="./src/css/style.css">
+
+    <!-- Add Google Fonts or other custom fonts if desired -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- WebGL Canvas (Background & 3D Elements) -->
+    <!-- ID must match domElements.js -->
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- CSS3D Renderer Container (Holds HTML Content in 3D) -->
+    <!-- ID must match domElements.js -->
+    <div id="css3d-container"></div>
+
+    <!-- Loading Screen -->
+    <!-- ID must match domElements.js -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>Construyendo el Futuro...</p> <!-- Or any other loading text -->
+    </div>
+
+    <!-- Scroll Proxy Div -->
+    <!-- ID must match domElements.js -->
+    <!-- This invisible div provides the scroll height -->
+    <div id="scroll-proxy"></div>
+
+    <!-- Import Map (MUST be valid JSON - NO comments, NO trailing commas!) -->
+    <!-- Paths MUST be correct relative to index.html -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "./node_modules/three/build/three.module.js",
+            "three/addons/": "./node_modules/three/examples/jsm/",
+            "@tweenjs/tween.js": "./node_modules/@tweenjs/tween.js/dist/tween.esm.js",
+            "@studio-freight/lenis": "./node_modules/@studio-freight/lenis/dist/lenis.mjs",
+
+            "./src/js/core/config.js": "./src/js/core/config.js",
+            "./src/js/core/domElements.js": "./src/js/core/domElements.js",
+            "./src/js/core/sceneSetup.js": "./src/js/core/sceneSetup.js",
+            "./src/js/core/assetLoader.js": "./src/js/core/assetLoader.js",
+            "./src/js/core/animationLoop.js": "./src/js/core/animationLoop.js",
+            "./src/js/core/eventHandlers.js": "./src/js/core/eventHandlers.js",
+
+            "./src/js/components/PageContent.js": "./src/js/components/PageContent.js",
+            "./src/js/components/ScrollManager.js": "./src/js/components/ScrollManager.js",
+
+            "./src/js/features/pageManager.js": "./src/js/features/pageManager.js",
+            "./src/js/features/backgroundElements.js": "./src/js/features/backgroundElements.js",
+            "./src/js/features/transitionManager.js": "./src/js/features/transitionManager.js",
+            "./src/js/features/scrollHandler.js": "./src/js/features/scrollHandler.js",
+
+            "./src/js/data/pageData.js": "./src/js/data/pageData.js",
+
+            "./src/js/main.js": "./src/js/main.js"
+        }
+    }
+    </script>
+
+    <!-- Main Script (Entry Point - Corrected Path) -->
+    <!-- type="module" implicitly defers execution until HTML is parsed -->
+    <script type="module" src="./src/js/main.js"></script>
+
+</body>
+</html>

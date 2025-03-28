@@ -11,6 +11,7 @@ let rafId = null;
 let rendererRefs = { webGLRenderer: null, cssRenderer: null };
 let sceneRefs = { webGLScene: null, cssScene: null };
 let cameraRef = null;
+let debugMode = false;
 
 export function initAnimationLoop(renderers, scenes, camera) {
      console.log("[AnimationLoop] Initializing...");
@@ -52,17 +53,27 @@ export function stopAnimationLoop() {
     isAnimating = false;
 }
 
+export function setDebugMode(enabled) {
+    debugMode = enabled;
+}
+
 function animate(time) {
-    // 1. Request next frame immediately
+    // Immediately return if animation is stopped
+    if (!isAnimating) return;
+
+    // Request next frame
     rafId = requestAnimationFrame(animate);
 
     // 2. Calculate delta time (optional)
     const delta = time - lastFrameTime;
     lastFrameTime = time;
 
-    // 3. Update TWEEN
+    // 3. Update TWEEN with the correct time parameter
     try {
         TWEEN.update(time);
+        if (debugMode) {
+            console.log(`[Animate] TWEEN updated at time: ${time}`);
+        }
     } catch (error) {
          console.error(`[Animate] Error during TWEEN.update:`, error);
          stopAnimationLoop(); // Stop loop on critical error
@@ -76,6 +87,9 @@ function animate(time) {
     try {
         rendererRefs.webGLRenderer.render(sceneRefs.webGLScene, cameraRef);
         rendererRefs.cssRenderer.render(sceneRefs.cssScene, cameraRef);
+        if (debugMode) {
+            console.log(`[Animate] Rendered scenes at time: ${time}`);
+        }
     } catch (error) {
         console.error(`[Animate] Error during rendering:`, error);
         stopAnimationLoop(); // Stop loop on render error

@@ -86,8 +86,8 @@ function onAssetsReady() {
              throw new Error("Scroll Manager initialization failed.");
         }
 
-        // 9. Initialize Transition Manager (Needs pages, camera, and the scrollManager instance)
-        initTransitionManager(pages, camera, scrollManager);
+        // 9. Initialize Transition Manager (Needs pages, camera, scene, scrollManager, and renderer)
+        initTransitionManager(pages, camera, sceneRefs.webGLScene, scrollManager, rendererRefs.webGLRenderer);
 
         // 10. Setup Event Handlers (Resize, etc.)
         setupEventHandlers(camera, rendererRefs, pages);

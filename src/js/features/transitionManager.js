@@ -15,21 +15,52 @@ const _lookAtInterpolation = new THREE.Vector3();
 
 let pagesRef = [];
 let cameraRef = null;
+let sceneRef = null;
 let scrollManagerRef = null;
+let rendererRef = null;
 
-export function initTransitionManager(pages, camera, scrollManager) {
+const TRANSITION_TIMEOUT = TRANSITION_DURATION * 2; // Double the duration as safety margin
+let timeoutId = null;
+
+function cleanupTween() {
+    if (currentTween) {
+        currentTween.stop();
+        TWEEN.remove(currentTween);
+        currentTween = null;
+    }
+    if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+    }
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+    TWEEN.update();
+    if (rendererRef && cameraRef && sceneRef) {
+        rendererRef.render(sceneRef, cameraRef);
+    } else {
+        console.error("[TransitionManager] Missing renderer, camera, or scene reference");
+    }
+}
+
+export function initTransitionManager(pages, camera, scene, scrollManager, renderer) {
     console.log("[TransitionManager] Initializing...");
-    if (!pages || !camera || !scrollManager) {
-         console.error("[TransitionManager] Missing dependencies (pages, camera, or scrollManager).");
-         throw new Error("TransitionManager failed to initialize due to missing dependencies."); // Make error clearer
+    if (!pages || !camera || !scene || !scrollManager || !renderer) {
+         console.error("[TransitionManager] Missing dependencies (pages, camera, scene, scrollManager, or renderer).");
+         throw new Error("TransitionManager failed to initialize due to missing dependencies.");
     }
     pagesRef = pages;
     cameraRef = camera;
+    sceneRef = scene;
     scrollManagerRef = scrollManager;
-    console.log(`[TransitionManager] Initialized successfully with ${pagesRef.length} pages.`); // Log count
+    rendererRef = renderer;
+    animate();
+    console.log(`[TransitionManager] Initialized successfully with ${pagesRef.length} pages.`);
 }
 
 export function transitionToSection(targetIndex) {
+    cleanupTween(); // Cleanup any existing animation
     console.log(`%c[Transition] Initiating to index: ${targetIndex}`, 'color: yellow');
 
     if (!pagesRef || !cameraRef || !scrollManagerRef) { // Re-check dependencies
@@ -72,62 +103,70 @@ export function transitionToSection(targetIndex) {
         .onUpdate(handleTweenUpdate) // Use named handler
         .onComplete(() => handleTweenComplete(targetIndex, targetPage, _targetCamPos, _targetLookAt)) // Use named handler
         .start(performance.now());
+
+    timeoutId = setTimeout(() => {
+        console.error('[Transition] Animation timeout! Cleaning up...');
+        cleanupTween();
+        if (scrollManagerRef) {
+            scrollManagerRef.notifyTransitionComplete();
+        }
+    }, TRANSITION_TIMEOUT);
 }
 
 // ---vvv ADD LOGGING HERE vvv---
 function handleTweenUpdate(data) {
-    console.log('%c[Tween Update] Frame Start', 'color: orange'); // <-- START LOG
+    console.log('%c[Tween Update] Frame Start', 'color: orange');
     try {
         if (!cameraRef || !pagesRef) {
-             console.error("[Tween Update] Missing cameraRef or pagesRef!"); // <-- Check refs
-             if (currentTween) currentTween.stop();
-             return;
+            console.error('[Tween Update] Missing cameraRef or pagesRef!');
+            if (currentTween) currentTween.stop();
+            return;
         }
 
-        // console.log('[Tween Update] Updating Camera'); // <-- Optional finer log
+        console.log(`[Tween Update] Updating camera position to: (${data.camX}, ${data.camY}, ${data.camZ})`);
         cameraRef.position.set(data.camX, data.camY, data.camZ);
         _lookAtInterpolation.set(data.lookAtX, data.lookAtY, data.lookAtZ);
+        console.log(`[Tween Update] Updating camera lookAt to: (${data.lookAtX}, ${data.lookAtY}, ${data.lookAtZ})`);
         cameraRef.lookAt(_lookAtInterpolation);
 
-        // console.log('[Tween Update] Updating Pages...'); // <-- Optional finer log
-        pagesRef.forEach((page, index) => { // Add index
-            // console.log(`[Tween Update] Processing page index ${index}`); // <-- Log loop iteration
-
-            // Add more robust check for page validity
+        pagesRef.forEach((page, index) => {
             if (!page || !page.group || !page.pageData) {
                 console.warn(`[Tween Update] Skipping invalid page at index ${index}`);
-                return; // Skip this iteration
+                return;
             }
-            const id = page.pageData.id;
-            // console.log(`[Tween Update] Page ID: ${id}`); // <-- Log page ID
 
+            const id = page.pageData.id;
             const opacity = data[`p${id}O`];
             const scale = data[`p${id}S`];
             const zPos = data[`p${id}Z`];
 
-            if (opacity !== undefined) page.setOpacity(opacity);
-            if (scale !== undefined) page.group.scale.set(scale, scale, scale);
-            if (zPos !== undefined) page.group.position.z = zPos;
+            if (opacity !== undefined) {
+                console.log(`[Tween Update] Updating page ${id} opacity to: ${opacity}`);
+                page.setOpacity(opacity);
+            }
+            if (scale !== undefined) {
+                console.log(`[Tween Update] Updating page ${id} scale to: ${scale}`);
+                page.group.scale.set(scale, scale, scale);
+            }
+            if (zPos !== undefined) {
+                console.log(`[Tween Update] Updating page ${id} z position to: ${zPos}`);
+                page.group.position.z = zPos;
+            }
 
-            // Log BEFORE the critical call
-            // console.log(`[Tween Update] BEFORE updateCSSObjectTransform for page ${id}`); // <-- Log before critical call
-            page.updateCSSObjectTransform(); // CRITICAL SYNC
-            // Log AFTER the critical call
-            // console.log(`[Tween Update] AFTER updateCSSObjectTransform for page ${id}`); // <-- Log after critical call
-
+            console.log(`[Tween Update] Updating CSS transforms for page ${id}`);
+            page.updateCSSObjectTransform();
         });
-         // console.log('[Tween Update] Finished page updates.'); // <-- Optional finer log
 
+        console.log('%c[Tween Update] Frame End', 'color: orange');
     } catch (error) {
-         console.error(`%c[TWEEN Update Error]`, 'color: red; font-weight:bold;', error);
-         if (currentTween) currentTween.stop(); // Stop tween on error
+        console.error('%c[TWEEN Update Error]', 'color: red; font-weight:bold;', error);
+        if (currentTween) currentTween.stop();
     }
-    console.log('%c[Tween Update] Frame End', 'color: orange'); // <-- END LOG
 }
 // ---^^^ END LOGGING AREA ^^^---
 
-
 function handleTweenComplete(targetIndex, targetPage, finalCamPos, finalLookAt) {
+    cleanupTween();
      // ... (rest of handleTweenComplete remains the same) ...
      console.log(`%c[Transition] TWEEN Complete for index ${targetIndex}`, 'color: cyan;');
      if (!cameraRef || !pagesRef || !scrollManagerRef) return;
